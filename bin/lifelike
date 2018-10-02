@@ -1,0 +1,126 @@
+#!/bin/bash
+
+# Copyright (C) 2018  Christopher James Howard
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+
+x=0
+y=0
+w=640
+h=480
+c=8
+o=1
+r=1
+g=1
+b=1
+a=1
+t=1000
+u=0.125
+
+usage() { echo "Usage: $0 [-x <x>] [-y <y>] [-w <width>] [-h <height>] [-c <cell size>] [-o <outline width>] [-r <red>] [-g <green>] [-b <blue>] [-a <alpha>] [-t <ticks>] [-u <update interval>]" 1>&2; exit 1; }
+
+while getopts ":x:y:w:h:c:o:r:g:b:a:t:u:" arg; do
+    case "${arg}" in
+        x)
+            x=${OPTARG}
+            ;;
+        y)
+            y=${OPTARG}
+            ;;
+	w)
+            w=${OPTARG}
+            ;;
+	h)
+            h=${OPTARG}
+            ;;
+	c)
+            c=${OPTARG}
+            ;;
+	o)
+            o=${OPTARG}
+            ;;
+	r)
+            r=${OPTARG}
+            ;;
+	g)
+            g=${OPTARG}
+            ;;
+	b)
+            b=${OPTARG}
+            ;;
+	a)
+            a=${OPTARG}
+            ;;
+	t)
+            t=${OPTARG}
+            ;;
+	u)
+            u=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+# Create temporary config file
+cat >/tmp/lifelike.conf <<EOL
+conky.config = {
+	alignment = 'top_left',
+	background = false,
+	border_width = 0,
+	cpu_avg_samples = 1,
+	default_color = 'white',
+	default_outline_color = 'white',
+	default_shade_color = 'white',
+	draw_borders = false,
+	draw_graph_borders = false,
+	draw_outline = false,
+	draw_shades = false,
+	use_xft = false,
+	gap_x = $x,
+	gap_y = $y,
+	minimum_width = $w,
+	minimum_height = $h,
+	net_avg_samples = 1,
+	no_buffers = false,
+	double_buffer = true,
+	out_to_console = false,
+	out_to_stderr = false,
+	extra_newline = false,
+	own_window = true,
+	own_window_transparent = true,
+	own_window_argb_visual = true,
+	own_window_argb_value = 0,
+	own_window_class = 'Conky',
+	own_window_type = 'desktop',
+	own_window_hints = 'undecorated,sticky,skip_taskbar,skip_pager,below',
+	stippled_borders = 0,
+	update_interval = $u,
+	uppercase = false,
+	use_spacer = 'none',
+	show_graph_scale = false,
+	show_graph_range = false,
+	lua_load = "$DIR/../share/lifelike/life.lua",
+	lua_startup_hook = "init $w $h $c $o $r $g $b $a $t",
+	lua_draw_hook_post = "main"
+}
+
+conky.text = [[]]
+EOL
+
+conky --config=/tmp/lifelike.conf &> /dev/null
